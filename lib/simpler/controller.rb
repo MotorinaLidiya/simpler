@@ -22,6 +22,18 @@ module Simpler
       @response.finish
     end
 
+    def params
+      @request.params.update(@request.env['simpler.params'])
+    end
+
+    def headers
+      @response.headers
+    end
+
+    def status(code)
+      @response.status = code
+    end
+
     private
 
     def extract_name
@@ -42,12 +54,18 @@ module Simpler
       View.new(@request.env).render(binding)
     end
 
-    def params
-      @request.params
+    def render(template)
+      if template.is_a?(Hash)
+        render_plain(template[:plain]) if template.key?(:plain)
+      else
+        @request.env['simpler.template'] = template
+      end
     end
 
-    def render(template)
-      @request.env['simpler.template'] = template
+    def render_plain(text)
+      @response['Content-Type'] = 'text/plain'
+
+      @response.write(text)
     end
 
   end
